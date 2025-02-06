@@ -1,0 +1,41 @@
+class Assets {
+  static const _dir = 'assets/svg';
+
+  static const String appIcon = '$_dir/logo.svg';
+  static const String fingerprint = '$_dir/fingerprint.svg';
+  static const String share = '$_dir/share.svg';
+  static const String chatIcon = '$_dir/chats.svg';
+  static const String exploreIcon = '$_dir/explore.svg';
+  static const String hustleIcon = '$_dir/hustle.svg';
+  static const String homeIcon = '$_dir/home.svg';
+  static const String comingSoon = 'assets/svg/coming_sson.svg';
+  static const String notificationSvg = '$_dir/notification.svg';
+  static const String help = '$_dir/help.svg';
+  static const String qrPayment = '$_dir/qr_payment.svg';
+  static const String fundWallet = '$_dir/fund_wallet.svg';
+  static const String transfer = '$_dir/transfer.svg';
+  static const String airtime = '$_dir/airtime.svg';
+  static const String data = '$_dir/data.svg';
+  static const String bills = '$_dir/bills.svg';
+  static const String credit = '$_dir/credit.svg';
+  static const String debit = '$_dir/debit.svg';
+  static const String copy = '$_dir/copy.svg';
+  static const String bank = '$_dir/bank.svg';
+  static const String settings = '$_dir/settings.svg';
+  static const String star = '$_dir/star.svg';
+  static const String bill = '$_dir/bill.svg';
+  static const String live = '$_dir/live.svg';
+  static const String sendCrypto = '$_dir/send_crypto.svg';
+  static const String download = '$_dir/download.svg';
+  static const String camera = '$_dir/camera.svg';
+  static const String profileShare = '$_dir/profile_share.svg';
+  static const String receiveCrypto = '$_dir/receive_crypto.svg';
+  static const String profileTick = 'assets/svg/profile_tick.svg';
+  static const String shareBlack = 'assets/svg/share_black.svg';
+  static const String downBlackArrow = 'assets/svg/down_black_arrow.svg';
+  static const String gains = 'assets/svg/gains.svg';
+  static const String holdings = 'assets/svg/holdings.svg';
+  static const String btc = 'assets/svg/btc.svg';
+  static const String dummyChatImage = 'assets/svg/dummy_chat_image.svg';
+  static const String pendingSvg = 'assets/svg/pending.svg';
+}
