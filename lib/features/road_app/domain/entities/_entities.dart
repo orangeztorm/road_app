@@ -1,0 +1,9 @@
+export 'admin/admin_login_entity.dart';
+export 'admin/admin_profile_entity.dart';
+export 'pothole_list_entity.dart';
+export 'admin/cav_schedules_entity.dart';
+export 'admin/pothole_detect_entity.dart';
+export 'admin/assign_entity.dart';
+export 'user/nearby_pothole_entity.dart';
+export 'user/user_signin_entity.dart';
+export 'user/user_signup_entity.dart';

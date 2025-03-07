@@ -6,7 +6,15 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
+import 'package:mime/mime.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:road_app/cores/__cores.dart';
+import 'package:path/path.dart';
+
+import 'package:camera/camera.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
 
 // import '../navigator/navigator.dart';
 // import '../shared_session/session_manager.dart';
@@ -229,59 +237,59 @@ class HttpHelper {
     }
   }
 
-  Future<Map<String, dynamic>> postMultipartWithFields<T>({
-    required String url,
-    required List<MapEntry<String, http.MultipartFile>> files,
-    required T fields,
-  }) async {
-    try {
-      final Map<String, String> header = await headers();
-      LoggerHelper.log(url);
-      LoggerHelper.log(fields);
-      LoggerHelper.log(files);
-      LoggerHelper.log("header: ${await headers()}");
-      var request = http.MultipartRequest('POST', Uri.parse(url));
+  // Future<Map<String, dynamic>> postMultipartWithFields<T>({
+  //   required String url,
+  //   required List<MapEntry<String, http.MultipartFile>> files,
+  //   required T fields,
+  // }) async {
+  //   try {
+  //     final Map<String, String> header = await headers();
+  //     LoggerHelper.log(url);
+  //     LoggerHelper.log(fields);
+  //     LoggerHelper.log(files);
+  //     LoggerHelper.log("header: ${await headers()}");
+  //     var request = http.MultipartRequest('POST', Uri.parse(url));
 
-      if (fields is Map<String, dynamic>) {
-        fields.forEach((key, value) {
-          if (value is List) {
-            request.fields[key] = value.join(',');
-          } else if (value != null) {
-            request.fields[key] = value.toString();
-          }
-        });
-      } else {
-        throw ArgumentError("Unsupported field type: ${fields.runtimeType}");
-      }
+  //     if (fields is Map<String, dynamic>) {
+  //       fields.forEach((key, value) {
+  //         if (value is List) {
+  //           request.fields[key] = value.join(',');
+  //         } else if (value != null) {
+  //           request.fields[key] = value.toString();
+  //         }
+  //       });
+  //     } else {
+  //       throw ArgumentError("Unsupported field type: ${fields.runtimeType}");
+  //     }
 
-      for (var fileEntry in files) {
-        request.files.add(fileEntry.value);
-      }
+  //     for (var fileEntry in files) {
+  //       request.files.add(fileEntry.value);
+  //     }
 
-      request.headers.addAll(header);
+  //     request.headers.addAll(header);
 
-      var streamedResponse = await request.send();
-      var response = await http.Response.fromStream(streamedResponse);
+  //     var streamedResponse = await request.send();
+  //     var response = await http.Response.fromStream(streamedResponse);
 
-      final Map<String, dynamic> result = json.decode(response.body);
+  //     final Map<String, dynamic> result = json.decode(response.body);
 
-      LoggerHelper.log(response.body);
+  //     LoggerHelper.log(response.body);
 
-      if ((response.statusCode ~/ 100) == 2) {
-        return result;
-      } else {
-        throw 'Error: ${result['message']}';
-      }
-    } on FormatException catch (e) {
-      throw 'Unable to format data: $e';
-    } on http.ClientException catch (e) {
-      throw 'Client Exception: $e';
-    } on TimeoutException catch (e) {
-      throw 'Timeout Exception: $e';
-    } catch (e) {
-      throw 'An unexpected error occurred: $e';
-    }
-  }
+  //     if ((response.statusCode ~/ 100) == 2) {
+  //       return result;
+  //     } else {
+  //       throw 'Error: ${result['message']}';
+  //     }
+  //   } on FormatException catch (e) {
+  //     throw 'Unable to format data: $e';
+  //   } on http.ClientException catch (e) {
+  //     throw 'Client Exception: $e';
+  //   } on TimeoutException catch (e) {
+  //     throw 'Timeout Exception: $e';
+  //   } catch (e) {
+  //     throw 'An unexpected error occurred: $e';
+  //   }
+  // }
 
   Future<Map<String, dynamic>> patchMultipartWithFields<T>({
     required String url,
@@ -337,65 +345,172 @@ class HttpHelper {
     }
   }
 
-  Future<Map<String, dynamic>> postMultipartWithFields2<T>({
+  // Future<Map<String, dynamic>> postMultipartWithFields2<T>({
+  //   required String url,
+  //   required List<MapEntry<String, http.MultipartFile>> files,
+  //   required T fields,
+  // }) async {
+  //   try {
+  //     final Map<String, String> header = await headers();
+  //     LoggerHelper.log(url);
+  //     LoggerHelper.log(fields);
+  //     LoggerHelper.log(files);
+  //     LoggerHelper.log("header: ${await headers()}");
+  //     var request = http.MultipartRequest('POST', Uri.parse(url));
+
+  //     // Add the fields to the request
+  //     if (fields is Map<String, dynamic>) {
+  //       fields.forEach((key, value) {
+  //         if (value is List) {
+  //           request.fields[key] = value.join(',');
+  //         } else if (value != null) {
+  //           request.fields[key] = value.toString();
+  //         }
+  //       });
+  //     } else {
+  //       throw ArgumentError("Unsupported field type: ${fields.runtimeType}");
+  //     }
+
+  //     // Add files to the request
+  //     for (var fileEntry in files) {
+  //       request.files.add(fileEntry.value);
+  //     }
+
+  //     // Add headers
+  //     request.headers.addAll(header);
+
+  //     // Send the request
+  //     var streamedResponse = await request.send();
+  //     var response = await http.Response.fromStream(streamedResponse);
+
+  //     // Decode the response
+  //     final Map<String, dynamic> result = json.decode(response.body);
+
+  //     LoggerHelper.log(response.body);
+
+  //     if ((response.statusCode ~/ 100) == 2) {
+  //       return result;
+  //     } else {
+  //       throw 'Error: ${result['message']}';
+  //     }
+  //   } on FormatException catch (e) {
+  //     throw 'Unable to format data: $e';
+  //   } on http.ClientException catch (e, s) {
+  //     // Specifically catch ClientException and remove the URL from the error message
+  //     LoggerHelper.log(e, s);
+  //     throw 'Network Error: Connection aborted. Please check your internet connection and try again.';
+  //   } on TimeoutException catch (e) {
+  //     throw 'Timeout Exception: $e';
+  //   } catch (e) {
+  //     throw 'An unexpected error occurred: $e';
+  //   }
+  // }
+
+  Future<Map<String, dynamic>> postMultipartWithFields2({
     required String url,
-    required List<MapEntry<String, http.MultipartFile>> files,
-    required T fields,
+    required File imageFile, // Ensure image is a valid File
+    required double longitude,
+    required double latitude,
+    required String address,
   }) async {
     try {
-      final Map<String, String> header = await headers();
-      LoggerHelper.log(url);
-      LoggerHelper.log(fields);
-      LoggerHelper.log(files);
-      LoggerHelper.log("header: ${await headers()}");
-      var request = http.MultipartRequest('POST', Uri.parse(url));
-
-      // Add the fields to the request
-      if (fields is Map<String, dynamic>) {
-        fields.forEach((key, value) {
-          if (value is List) {
-            request.fields[key] = value.join(',');
-          } else if (value != null) {
-            request.fields[key] = value.toString();
-          }
-        });
+      // ✅ Ensure file exists before sending
+      if (!imageFile.existsSync()) {
+        throw "❌ File does not exist: ${imageFile.path}";
       } else {
-        throw ArgumentError("Unsupported field type: ${fields.runtimeType}");
+        print(
+            "📂 File exists: ${imageFile.path}, Size: ${imageFile.lengthSync()} bytes");
       }
 
-      // Add files to the request
-      for (var fileEntry in files) {
-        request.files.add(fileEntry.value);
-      }
+      // ✅ Move file to app storage if needed (especially for Android)
+      imageFile = await moveToAppStorage(imageFile);
 
-      // Add headers
-      request.headers.addAll(header);
+      final Map<String, String> headers = {
+        'Authorization':
+            'Bearer ${SessionManager.instance.getToken}', // Replace with actual token
+        'Accept': 'application/json',
+        'version': '1.0.0',
+        'platform': 'android',
+      };
 
-      // Send the request
+      // ✅ Construct full URL with query parameters
+      String fullUrl =
+          "$url?longitude=$longitude&latitude=$latitude&address=${Uri.encodeComponent(address)}";
+      var request = http.MultipartRequest('POST', Uri.parse(fullUrl));
+
+      // ✅ Remove 'Content-Type' (Flutter sets it automatically)
+      headers.remove('Content-Type');
+      request.headers.addAll(headers);
+
+      // ✅ Add fields correctly
+      request.fields['longitude'] = longitude.toString();
+      request.fields['latitude'] = latitude.toString();
+      request.fields['address'] = address;
+
+      // ✅ Convert File to Multipart with Correct MIME Type
+      final mimeTypeData = lookupMimeType(imageFile.path)?.split('/');
+      final fileMultipart = await http.MultipartFile.fromPath(
+        'image', // Make sure 'image' is the correct field name based on Swagger!
+        imageFile.path,
+        contentType: mimeTypeData != null
+            ? MediaType(
+                mimeTypeData[0], mimeTypeData[1]) // ✅ Fixes MediaType error
+            : null,
+      );
+      request.files.add(fileMultipart);
+
+      // ✅ Debugging Logs
+      print("🔍 Sending Multipart Request...");
+      print("🟢 URL: $fullUrl");
+      print("🟢 Headers: ${request.headers}");
+      print("🟢 Fields: ${request.fields}");
+      print("🟢 Files: ${request.files}");
+      print("📂 File Path: ${imageFile.path}");
+      print("📂 File Size: ${imageFile.lengthSync()} bytes");
+
+      // ✅ Send request
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
 
-      // Decode the response
-      final Map<String, dynamic> result = json.decode(response.body);
+      // ✅ Print API Response
+      print("🔵 Response Status Code: ${response.statusCode}");
+      print("🔵 Response Headers: ${response.headers}");
+      print("🔵 Response Body: ${response.body}");
 
-      LoggerHelper.log(response.body);
+      final result = json.decode(response.body);
 
       if ((response.statusCode ~/ 100) == 2) {
         return result;
       } else {
-        throw 'Error: ${result['message']}';
+        throw checkForError(result);
       }
-    } on FormatException catch (e) {
-      throw 'Unable to format data: $e';
+    } on FormatException catch (e, s) {
+      LoggerHelper.log(e, s);
+      if (kDebugMode) {
+        throw 'Unable To Format Data!';
+      }
+
+      throw 'Something went wrong, please try again';
+    } on TimeoutException catch (e, s) {
+      LoggerHelper.log(e, s);
+      throw 'Request Timeout, Unable to connect to server please check your network and try again!';
+    } on SocketException catch (e, s) {
+      LoggerHelper.log(e, s);
+      throw 'Request timed out, please try again';
     } on http.ClientException catch (e, s) {
       // Specifically catch ClientException and remove the URL from the error message
       LoggerHelper.log(e, s);
       throw 'Network Error: Connection aborted. Please check your internet connection and try again.';
-    } on TimeoutException catch (e) {
-      throw 'Timeout Exception: $e';
     } catch (e) {
-      throw 'An unexpected error occurred: $e';
+      throw e.toString();
     }
+  }
+
+// ✅ Move File to App Storage (Fix for Android Cache Issue)
+  Future<File> moveToAppStorage(File imageFile) async {
+    final Directory appDir = await getApplicationDocumentsDirectory();
+    final String newPath = '${appDir.path}/${imageFile.path.split('/').last}';
+    return imageFile.copy(newPath);
   }
 
   /// Make an [Http] patch request

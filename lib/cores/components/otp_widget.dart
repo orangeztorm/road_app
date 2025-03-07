@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pinput/pinput.dart';
@@ -23,6 +22,7 @@ class OTPWidget extends StatefulWidget {
   });
 
   @override
+  // ignore: library_private_types_in_public_api
   _OTPWidgetState createState() => _OTPWidgetState();
 }
 

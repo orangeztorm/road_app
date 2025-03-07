@@ -1,0 +1,10 @@
+export 'admin/admin_login_model.dart';
+export 'admin/admin_profile_model.dart';
+export 'pothole_list_model.dart';
+export 'admin/cav_schedules_model.dart';
+export 'admin/pothole_detect_model.dart';
+export 'admin/assign_model.dart';
+export 'user/nearby_potholes_model.dart';
+export 'user/user_pothole_list_model.dart';
+export 'user/user_signin_model.dart';
+export 'user/user_signup_model.dart';

@@ -39,153 +39,36 @@ class ApiEndpoints {
   //   }
   // })();
 
-  String get baseUrl => _baseUrl;
+  String get baseUrl => 'https://pothole-production.up.railway.app';
 
   // String get baseUrlV2 => _baseUrlV2;
 
   // --------------------------------------
-  static final String verifyBvn =
-      '$_baseUrl/onboarding/api/v1/sign-up/verify-bvn';
-  static final String resendOtp =
-      '$_baseUrl/onboarding/api/v1/sign-up/resend-otp';
-  static final String verifyOtp =
-      '$_baseUrl/onboarding/api/v1/sign-up/verify-otp';
-  static final String createAccount =
-      '$_baseUrl/onboarding/api/v1/sign-up/create-profile-and-account';
-  static final String resetPinVerifyBvn =
-      '$_baseUrl/onboarding/api/v1/forgot-pin/resend-otp';
-  // static final String resetPinResendOtp =
-  //     '$_baseUrl/onboarding/api/v1/sign-up/create-account';
-  static final String resetPinVerifyOtp =
-      '$_baseUrl/onboarding/api/v1/forgot-pin/verify-otp';
-  static final String forgotPasswordResetPin =
-      '$_baseUrl/onboarding/api/v1/forgot-pin/reset';
+  static final String signIn = '$_baseUrl/api/v1.0.0/auth/admin/login';
 
-  // forgot password
-  static final String forgotPasswordVerifyBvn =
-      '$_baseUrl/onboarding/api/v1/forgot-pin/verify-bvn';
+  // admin
+  static final String adminLogin = '$_baseUrl/api/v1.0.0/auth/admin/login';
+  static final String adminLogout = '$_baseUrl/api/v1.0.0/auth/admin/logout';
+  static final String adminChangePassword =
+      '$_baseUrl/api/v1.0.0/auth/admin/change-password';
+  static final String adminProfile = '$_baseUrl/api/v1.0.0/admin/profile/me';
+  static final String potholesDetect =
+      '$_baseUrl/api/v1.0.0/admin/portholes/detect';
+  static final String potholesList = '$_baseUrl/api/v1.0.0/admin/portholes/all';
+  static String assignTeam(id) =>
+      '$_baseUrl/api/v1.0.0/admin/portholes/$id/assign-team';
+  static final String cavSchedules =
+      '$_baseUrl/api/v1.0.0/admin/cav-schedules/all';
+  static final String addToSchedule =
+      '$_baseUrl/api/v1.0.0/admin/cav-schedules';
+  static String completePothole(id) =>
+      '$_baseUrl/api/v1.0.0/admin/cav-schedules/pothole/$id/complete';
 
-  static final String forgotPasswordResendOtp =
-      '$_baseUrl/onboarding/api/v1/forgot-pin/resend-otp';
-
-  static final String forgotPasswordVerifyOtp =
-      '$_baseUrl/onboarding/api/v1/forgot-pin/verify-otp';
-
-  static final String forgotPasswordResetPassword =
-      '$_baseUrl/onboarding/api/v1/forgot-pin/reset';
-
-  // login
-  static final String login = '$_baseUrl/user/auth/login';
-
-  static final String getUserLoginState =
-      '$_baseUrl/onboarding/api/v1/user-login-state';
-
-  static String accountBalance = '$_baseUrl/onboarding/api/v1/accounts/balance';
-
-  // wallet
-
-  static final String getBanks =
-      '$_baseUrl/transaction/api/v1/transactions/get-banks';
-
-  static final String bankAccountInquiry =
-      '$_baseUrl/transaction/api/v1/transactions/account-enquiry';
-
-  static final String getCharge =
-      '$_baseUrl/transaction/api/v1/transactions/get-service-charge';
-
-  static final String bankTransfer =
-      '$_baseUrl/transaction/api/v1/transactions/async-interbank-debit-transfer';
-
-  static final String saveBeneficiary =
-      '$_baseUrl/transaction/api/v1/transactions/save-beneficiary';
-
-  static final String getBeneficiaries =
-      '$_baseUrl/transaction/api/v1/transactions/get-beneficiaries';
-
-  // bills
-  static final String getBillsServices = '$_baseUrl/bills/v1/categories';
-
-  static String getBillsCategory(id) => '$_baseUrl/bills/v1/category/$id';
-
-  static String getinputFields(inputField) =>
-      '$_baseUrl/bills/v1/category/input/$inputField';
-
-  static final String biilValidateInputs =
-      '$_baseUrl/bills/v1/utility/validate';
-
-  static final String billPay =
-      '$_baseUrl/transaction/api/v1/transactions/pay-bill/utility';
-  // static final String electricityPay = '$_baseUrl/bills/v1/utility/pay';
-  static final String electricityPay =
-      '$_baseUrl/transaction/api/v1/transactions/pay-bill/utility';
-  // static final String cablePay = '$_baseUrl/bills/v1/cable/purchase';
-  static final String cablePay =
-      '$_baseUrl/transaction/api/v1/transactions/pay-bill/utility';
-  // static final String airtimePay = '$_baseUrl/bills/v1/airtime/purchase';
-  static final String airtimePay =
-      '$_baseUrl/transaction/api/v1/transactions/pay-bill/airtime';
-  // static final String dataPay = '$_baseUrl/bills/v1/data/pay';
-  static final String dataPay =
-      '$_baseUrl/transaction/api/v1/transactions/pay-bill/data';
-
-  static final String transactionStatus =
-      '$_baseUrl/transaction/api/v1/transactions/query-transaction-status';
-
-  static final String transactionHistory =
-      '$_baseUrl/transaction/api/v1/transactions/history';
-
-  // Tier
-  static final String upgradeTier1 =
-      '$_baseUrl/onboarding/api/v1/accounts/upgrade-from-tier1';
-
-  static final String upgradeTier2 =
-      '$_baseUrl/onboarding/api/v1/accounts/upgrade-from-tier2';
-
-  // Customer Feedback
-  static final String sendFeedbacks = '$_baseUrl/onboarding/api/v1/feedbacks';
-  static final String getFeedBackTypes =
-      '$_baseUrl/onboarding/api/v1/feedbacks/types';
-
-  static final String refreshToken = '$_baseUrl/user/auth/refresh-token';
-  static final String saveToken =
-      '$_baseUrl/onboarding/api/v1/profiles/notification-token';
-  static final String logout = '$_baseUrl/user/profile/logout';
-  static final String changePin =
-      '$_baseUrl/onboarding/api/v1/profiles/change-pin';
-  static final String getNotifications =
-      '$_baseUrl/onboarding/api/v1/profiles/notifications';
-
-  // crypto Wallet
-  static final String getCryptoWallets =
-      '$_baseUrl/onboarding/api/v1/accounts/quidax/wallets';
-  static final String getAssets =
-      '$_baseUrl/onboarding/api/v1/accounts/quidax/assets';
-  static String getCryptoWallet(crypto) =>
-      '$_baseUrl/onboarding/api/v1/accounts/quidax/wallets/$crypto';
-  static final String createSubAccount =
-      '$_baseUrl/onboarding/api/v1/accounts/quidax/create-sub-account';
-  static final String addAssetsToHoldings =
-      '$_baseUrl/onboarding/api/v1/accounts/quidax/assets/eth/add-to-holdings';
-  static final String sellCrypto =
-      '$_baseUrl/transaction/api/v1/transactions/sell-crypto';
-  static final String buyCrypto =
-      '$_baseUrl/transaction/api/v1/transactions/buy-crypto';
-  static final String cryptoHistory =
-      '$_baseUrl/transaction/api/v1/transactions/crypto-history';
-  static final String geticker =
-      '$_baseUrl/transaction/api/v1/transactions/crypto-history';
-
-  // Verify Email
-  static final String verifyEmailSendOtp =
-      '$_baseUrl/user/profile/verify-email/send-otp';
-  static final String verifyEmailOtp =
-      '$_baseUrl/user/profile/verify-email/verify-otp';
-
-  // Name Tag
-  static final String checkNameTag =
-      '$_baseUrl/onboarding/api/v1/profiles/check-beam-tag';
-
-  static final String updateProfile = '$_baseUrl/onboarding/api/v1/profiles';
+  // user
+  static final String userSignup = '$_baseUrl/api/v1.0.0/auth/user/signup';
+  static final String userSignin = '$_baseUrl/api/v1.0.0/auth/user/login';
+  static final String nearbyPotholes =
+      '$_baseUrl/api/v1.0.0/user/portholes/nearby';
 }
 
 

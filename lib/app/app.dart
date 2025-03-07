@@ -2,10 +2,6 @@ import 'package:road_app/cores/__cores.dart';
 import 'package:road_app/features/__features.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:road_app/features/auth/presentation/pages/authority/cav_schedule_page.dart';
-import 'package:road_app/features/auth/presentation/pages/user/notification_page.dart';
-import 'package:road_app/features/other_pages/notification_settings_page.dart';
-import 'package:road_app/features/auth/presentation/pages/authority/road_surface_page.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

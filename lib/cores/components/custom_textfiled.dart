@@ -142,7 +142,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = context.isDarkMode;
+    // final isDarkMode = context.isDarkMode;
 
     return ValueListenableBuilder<bool>(
       valueListenable: obscureText,
