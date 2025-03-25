@@ -49,7 +49,7 @@ class NearbyPotholeBloc extends Bloc<NearbyPotholeEvent, NearbyPotholeState> {
       (data) {
         emit(state.copyWith(
           status: NearbyPotholeStatus.success,
-          potholes: [...state.potholes ?? [], ...data.data],
+          potholes: [...state.potholes, ...data.data],
         ));
       },
     );

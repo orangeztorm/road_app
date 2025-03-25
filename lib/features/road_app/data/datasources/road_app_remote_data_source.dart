@@ -1,6 +1,9 @@
 import 'package:road_app/cores/__cores.dart';
 import 'package:road_app/features/__features.dart';
-import 'package:road_app/features/road_app/domain/param/assign_team_param.dart';
+import 'package:road_app/features/road_app/data/responses/admin/all_admin_model.dart';
+import 'package:road_app/features/road_app/data/responses/admin/all_teams_model.dart';
+import 'package:road_app/features/road_app/domain/param/complete_pothole_param.dart';
+import 'package:road_app/features/road_app/presentation/cubits/admin/assign_team_cubit.dart';
 
 abstract class RoadAppRemoteDataSource {
   //admin login
@@ -12,7 +15,7 @@ abstract class RoadAppRemoteDataSource {
   Future<PotholeListModel> potholesList(RequestParam param);
   Future<BaseModel> addToSchedule(RequestParam param);
   Future<BaseModel> completeSchedule(RequestParam param);
-  Future<AssignTeamModel> assignTeam(RequestParam param);
+  Future<BaseModel> assignTeam(RequestParam param);
   Future<CavSchedulesListModel> cavSchedules(RequestParam param);
 
   // user
@@ -21,6 +24,14 @@ abstract class RoadAppRemoteDataSource {
   Future<UserSignupModel> signup(RequestParam param);
   Future<UserSignInModel> signin(RequestParam param);
   Future<BaseModel> userLogout(RequestParam param);
+
+  //Teams
+  Future<AllTeamsModel> allTeams(RequestParam param);
+  Future<AllAdminModel> allAdmins(RequestParam param);
+  Future<BaseModel> createAdmin(RequestParam param);
+  Future<BaseModel> createTeams(RequestParam param);
+  Future<BaseModel> updateTeams(RequestParam param);
+  Future<BaseModel> completePotholeAssesment(RequestParam param);
 }
 
 class RoadAppRemoteDataSourceImpl implements RoadAppRemoteDataSource {
@@ -102,15 +113,14 @@ class RoadAppRemoteDataSourceImpl implements RoadAppRemoteDataSource {
   // }
 
   @override
-  Future<AssignTeamModel> assignTeam(RequestParam param) async {
-    param as AssignTeamParam;
+  Future<BaseModel> assignTeam(RequestParam param) async {
+    param as AssignTeamFormzState;
     final Map<String, dynamic> response = await httpHelper.post(
-      url: ApiEndpoints.assignTeam(param.id),
-      // body: param.toMap(),
-      body: {},
+      url: ApiEndpoints.assignTeam(param.potholdId.value),
+      body: param.toMap(),
     );
 
-    return AssignTeamModel.fromJson(response);
+    return BaseModel.fromMap(response);
   }
 
   // @override
@@ -207,6 +217,65 @@ class RoadAppRemoteDataSourceImpl implements RoadAppRemoteDataSource {
     final Map<String, dynamic> response = await httpHelper.post(
       url: ApiEndpoints.completePothole(''),
       body: param.toMap(),
+    );
+
+    return BaseModel.fromMap(response);
+  }
+
+  @override
+  Future<AllTeamsModel> allTeams(RequestParam param) async {
+    final Map<String, dynamic> response = await httpHelper.get(
+      ApiEndpoints.allTeams,
+    );
+
+    return AllTeamsModel.fromJson(response);
+  }
+
+  @override
+  Future<AllAdminModel> allAdmins(RequestParam param) async {
+    final Map<String, dynamic> response = await httpHelper.get(
+      ApiEndpoints.allAdmins,
+    );
+
+    return AllAdminModel.fromJson(response);
+  }
+
+  @override
+  Future<BaseModel> createAdmin(RequestParam param) async {
+    final Map<String, dynamic> response = await httpHelper.post(
+      url: ApiEndpoints.createAdmin,
+      body: param.toMap(),
+    );
+
+    return BaseModel.fromMap(response);
+  }
+
+  @override
+  Future<BaseModel> createTeams(RequestParam param) async {
+    final Map<String, dynamic> response = await httpHelper.post(
+      url: ApiEndpoints.createTeams,
+      body: param.toMap(),
+    );
+
+    return BaseModel.fromMap(response);
+  }
+
+  @override
+  Future<BaseModel> updateTeams(RequestParam param) async {
+    final Map<String, dynamic> response = await httpHelper.put(
+      url: ApiEndpoints.updateTeams,
+      body: param.toMap(),
+    );
+
+    return BaseModel.fromMap(response);
+  }
+
+  @override
+  Future<BaseModel> completePotholeAssesment(RequestParam param) async {
+    param as CompletePotholeParam;
+    final Map<String, dynamic> response = await httpHelper.put(
+      url: ApiEndpoints.completePothole(param.id),
+      body: {},
     );
 
     return BaseModel.fromMap(response);

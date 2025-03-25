@@ -69,6 +69,15 @@ class ApiEndpoints {
   static final String userSignin = '$_baseUrl/api/v1.0.0/auth/user/login';
   static final String nearbyPotholes =
       '$_baseUrl/api/v1.0.0/user/portholes/nearby';
+
+  // teams
+  static final String allTeams = '$_baseUrl/api/v1.0.0/admin/teams/all';
+  static final String allAdmins = '$_baseUrl/api/v1.0.0/admin';
+  static final String createAdmin = '$_baseUrl/api/v1.0.0/admin';
+  static final String createTeams = '$_baseUrl/api/v1.0.0/admin/teams';
+  static final String updateTeams = '$_baseUrl/api/v1.0.0/admin/teams';
+  static String completePotholeAssesment(id) =>
+      '$_baseUrl/api/v1.0.0/cav-schedules/pothole/$id/complete';
 }
 
 

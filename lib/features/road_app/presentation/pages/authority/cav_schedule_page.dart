@@ -4,9 +4,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:road_app/app/__app.dart';
 import 'package:road_app/cores/__cores.dart';
 import 'package:road_app/features/__features.dart';
+import 'package:road_app/features/road_app/domain/param/complete_pothole_param.dart';
+import 'package:road_app/features/road_app/presentation/blocs/admin/complete_pothole_assesment_bloc/complete_pothole_assesment_bloc.dart';
 import 'package:road_app/features/road_app/presentation/pages/authority/authority_login_page.dart';
 import 'package:road_app/features/road_app/presentation/pages/authority/camera_page.dart';
 import 'package:road_app/features/road_app/presentation/pages/authority/road_surface_page.dart';
+import 'package:road_app/features/road_app/presentation/pages/authority/teams_page.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class CavSchedulePage extends StatelessWidget {
@@ -21,7 +24,7 @@ class CavSchedulePage extends StatelessWidget {
         centerTitle: true,
         automaticallyImplyLeading: false,
         title: const TextWidget.bold(
-          'CAV Schedules',
+          'Schedules',
           fontSize: 22,
         ),
         actions: [
@@ -43,7 +46,7 @@ class CavSchedulePage extends StatelessWidget {
         children: [
           const VSpace(20),
           const TextWidget.bold(
-            'Scheduled For Examination\nof CAV',
+            'Scheduled For Examination',
             fontSize: 22,
             textAlign: TextAlign.center,
           ),
@@ -130,7 +133,8 @@ class _CavSchedulesListEntityState extends State<CavSchedulesListEntity> {
 
   void checkIfEndReached() {
     if (_scrollController.position.atEdge) {
-      if (_scrollController.position.pixels != 0) {
+      if (_scrollController.position.pixels != 0 &&
+          _getCavSchedulesListBloc.state.hasNext == true) {
         // We are at the bottom of the list
         _getCavSchedulesListCubit.getMoreList(_getCavSchedulesListBloc);
       }
@@ -258,34 +262,138 @@ class _CavSchedulesListEntityState extends State<CavSchedulesListEntity> {
   }
 
   Widget _buildRow(CavScheduleEntity? schedule) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return InkWell(
+      onTap: () {
+        if (schedule != null) {
+          _showCompletePotholeBottomSheet(schedule);
+        }
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextWidget(
+                  schedule?.pothole?.address ?? '',
+                  textAlign: TextAlign.left,
+                ),
+                TextWidget(
+                  'Maintenance End: ${DateTimeHelper.formatDateMMMMDYATHMMA(schedule?.maintenanceEnd ?? DateTime.now())}',
+                  textColor: AppColor.kcGrey400,
+                  fontSize: 13,
+                )
+              ],
+            ),
+          ),
+          const HSpace(15),
+          SizedBox(
+            child: TextWidget.bold(
+              schedule?.status ?? 'SCHEDULED',
+              textAlign: TextAlign.end,
+              textColor: AppColor.color6E8BF5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCompletePotholeBottomSheet(CavScheduleEntity schedule) {
+    BottomSheetHelper.show(
+      context: context,
+      child: CompletePotholeBottomSheet(schedule: schedule),
+    );
+  }
+}
+
+class CompletePotholeBottomSheet extends StatelessWidget {
+  final CavScheduleEntity schedule;
+
+  const CompletePotholeBottomSheet({super.key, required this.schedule});
+
+  static CompletePotholeAssesmentBloc get completePotholeAssesmentBloc =>
+      getIt<CompletePotholeAssesmentBloc>();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextWidget(
-                schedule?.pothole?.address ?? '',
-                textAlign: TextAlign.left,
-              ),
-              TextWidget(
-                'Maintenance End: ${DateTimeHelper.formatDateMMMMDYATHMMA(schedule?.maintenanceEnd ?? DateTime.now())}',
-                textColor: AppColor.kcGrey400,
-                fontSize: 13,
-              )
-            ],
-          ),
+        const Text(
+          "Complete Pothole Reconstruction",
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
-        const HSpace(15),
-        const SizedBox(
-          child: TextWidget.bold(
-            'Scheduled',
-            textAlign: TextAlign.end,
-            textColor: AppColor.color6E8BF5,
-          ),
+        const VSpace(10),
+        ImageWidget(
+          imageTypes: ImageTypes.network,
+          imageUrl: schedule.pothole?.imageUrl ?? '',
+          width: 200,
+          height: 200,
         ),
+        const VSpace(),
+        const TextWidget(
+          "Are you sure you want to mark this pothole reconstruction as complete?",
+          fontSize: 16,
+          textAlign: TextAlign.center,
+        ),
+        const VSpace(20),
+        BlocConsumer<CompletePotholeAssesmentBloc,
+            CompletePotholeAssesmentState>(
+          bloc: completePotholeAssesmentBloc,
+          listener: (context, state) {
+            if (state.status.isFailure) {
+              Toast.useContext(
+                  context: context,
+                  message:
+                      state.failures?.message ?? AppStrings.somethingWentWrong);
+            } else if (state.status.isSuccess) {
+              AppRouter.instance.goBack();
+              Toast.showSuccess('Completed');
+              final CavScheduleCubit getCavSchedulesListCubit =
+                  getIt<CavScheduleCubit>();
+              final CavSchedulesBloc getCavSchedulesListBloc =
+                  getIt<CavSchedulesBloc>();
+
+              getCavSchedulesListCubit.getInitialList(getCavSchedulesListBloc);
+            }
+          },
+          builder: (context, state) {
+            return state.status.isLoading
+                ? const Button.loading()
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: Button(
+                          text: 'Cancel',
+                          onTap: () {
+                            AppRouter.instance.goBack();
+                          },
+                        ),
+                      ),
+                      const HSpace(10),
+                      Expanded(
+                        child: Button(
+                          text: 'Complete',
+                          onTap: () {
+                            completePotholeAssesmentBloc.add(
+                              CompletePotholeAssesment(
+                                CompletePotholeParam(
+                                  schedule.pothole?.id ?? '',
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+          },
+        ),
+        const VSpace(20),
       ],
     );
   }
@@ -360,6 +468,17 @@ class SettingsBottomSheet extends StatelessWidget {
             Toast.showInfo('Navigating to Road Surface Problems');
           },
         ),
+        const VSpace(20),
+        _buildOption(
+          icon: Icons.group,
+          title: "Create Teams",
+          onTap: () {
+            AppRouter.instance.goBack();
+            AppRouter.instance.navigateTo(TeamsPage.routeName);
+            Toast.showInfo('Navigating to Teams');
+          },
+        ),
+        const VSpace(20),
         _buildOption(
           icon: Icons.logout,
           title: "Logout",
@@ -374,10 +493,11 @@ class SettingsBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildOption(
-      {required IconData icon,
-      required String title,
-      required VoidCallback onTap}) {
+  Widget _buildOption({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Padding(

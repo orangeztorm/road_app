@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 class BaseEntity extends Equatable {
-  final String status;
-  final String state;
+  final dynamic status;
+  final dynamic state;
   final String message;
   final dynamic data;
 

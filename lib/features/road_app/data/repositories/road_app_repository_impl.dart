@@ -1,5 +1,7 @@
 import 'package:road_app/cores/__cores.dart';
 import 'package:road_app/features/road_app/data/_data.dart';
+import 'package:road_app/features/road_app/data/responses/admin/all_admin_model.dart';
+import 'package:road_app/features/road_app/data/responses/admin/all_teams_model.dart';
 import 'package:road_app/features/road_app/data/responses/user/nearby_potholes_model.dart';
 import 'package:road_app/features/road_app/domain/_domain.dart';
 import 'package:fpdart/fpdart.dart';
@@ -63,11 +65,11 @@ class RoadAppRepositoryImpl extends RoadAppRepository {
   // }
 
   @override
-  Future<Either<Failures, AssignTeamEntity>> assignTeam(
+  Future<Either<Failures, BaseModel>> assignTeam(
       RequestParam param) async {
     final action = remoteDataSource.assignTeam(param);
 
-    final repoTryCatchHelper = RepoTryCatchHelper<AssignTeamModel>();
+    final repoTryCatchHelper = RepoTryCatchHelper<BaseModel>();
     return repoTryCatchHelper.tryAction(() => action);
   }
 
@@ -136,6 +138,55 @@ class RoadAppRepositoryImpl extends RoadAppRepository {
     final action = remoteDataSource.signin(param);
 
     final repoTryCatchHelper = RepoTryCatchHelper<UserSignInModel>();
+    return repoTryCatchHelper.tryAction(() => action);
+  }
+
+  @override
+  Future<Either<Failures, AllTeamsModel>> allTeams(RequestParam param) async {
+    final action = remoteDataSource.allTeams(param);
+
+    final repoTryCatchHelper = RepoTryCatchHelper<AllTeamsModel>();
+    return repoTryCatchHelper.tryAction(() => action);
+  }
+
+  @override
+  Future<Either<Failures, AllAdminModel>> allAdmins(RequestParam param) async {
+    final action = remoteDataSource.allAdmins(param);
+
+    final repoTryCatchHelper = RepoTryCatchHelper<AllAdminModel>();
+    return repoTryCatchHelper.tryAction(() => action);
+  }
+
+  @override
+  Future<Either<Failures, BaseModel>> createAdmin(RequestParam param) async {
+    final action = remoteDataSource.createAdmin(param);
+
+    final repoTryCatchHelper = RepoTryCatchHelper<BaseModel>();
+    return repoTryCatchHelper.tryAction(() => action);
+  }
+
+  @override
+  Future<Either<Failures, BaseModel>> createTeams(RequestParam param) async {
+    final action = remoteDataSource.createTeams(param);
+
+    final repoTryCatchHelper = RepoTryCatchHelper<BaseModel>();
+    return repoTryCatchHelper.tryAction(() => action);
+  }
+
+  @override
+  Future<Either<Failures, BaseModel>> updateTeams(RequestParam param) async {
+    final action = remoteDataSource.updateTeams(param);
+
+    final repoTryCatchHelper = RepoTryCatchHelper<BaseModel>();
+    return repoTryCatchHelper.tryAction(() => action);
+  }
+
+  @override
+  Future<Either<Failures, BaseModel>> completePotholeAssesment(
+      RequestParam param) async {
+    final action = remoteDataSource.completePotholeAssesment(param);
+
+    final repoTryCatchHelper = RepoTryCatchHelper<BaseModel>();
     return repoTryCatchHelper.tryAction(() => action);
   }
 }

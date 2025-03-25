@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:road_app/app/__app.dart';
 import 'package:road_app/cores/__cores.dart';
 import 'package:road_app/features/__features.dart';
-import 'package:road_app/features/road_app/domain/param/assign_team_param.dart';
+import 'package:road_app/features/road_app/data/responses/admin/all_teams_model.dart';
+import 'package:road_app/features/road_app/presentation/cubits/admin/assign_team_cubit.dart';
 import 'package:road_app/features/road_app/presentation/pages/authority/cav_schedule_page.dart';
+import 'package:road_app/features/road_app/presentation/pages/authority/teams_page.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class RoadSurfacePage extends StatelessWidget {
@@ -91,7 +93,8 @@ class _PotholeListState extends State<PotholeList> {
 
   void checkIfEndReached() {
     if (_scrollController.position.atEdge) {
-      if (_scrollController.position.pixels != 0) {
+      if (_scrollController.position.pixels != 0 &&
+          _potholeListBloc.state.hasMore) {
         // We are at the bottom of the list
         if (_potholeListBloc.state.hasMore) {
           _potholeCubit.getMoreList(_potholeListBloc);
@@ -238,11 +241,12 @@ class _PotholeListState extends State<PotholeList> {
                   text: 'View Details',
                   onTap: () {
                     BottomSheetHelper.show(
-                        context: context,
-                        child: ViewImageBottomSheet(
-                          imageUrl: entity?.imageUrl,
-                          entity: entity,
-                        ));
+                      context: context,
+                      child: ViewImageBottomSheet(
+                        imageUrl: entity?.imageUrl,
+                        entity: entity,
+                      ),
+                    );
                   },
                   textSize: 13,
                 ),
@@ -266,6 +270,7 @@ class ViewImageBottomSheet extends StatelessWidget {
 
   static AssignTeamBloc assignTeamBloc = getIt<AssignTeamBloc>();
   static AddToScheduleBloc addToScheduleBloc = getIt<AddToScheduleBloc>();
+  static AssignTeamCubit assignTeamCubit = getIt<AssignTeamCubit>();
 
   @override
   Widget build(BuildContext context) {
@@ -330,20 +335,46 @@ class ViewImageBottomSheet extends StatelessWidget {
                                     ? 'Schedule'
                                     : 'Assign Team',
                                 onTap: () {
-                                  if (entity?.status.toLowerCase() ==
-                                      'ASSIGNED'.toLowerCase()) {
-                                    addToScheduleBloc.add(
-                                      AddToSchedule(
-                                        AssignTeamParam(entity?.id ?? ''),
+                                  BottomSheetHelper.show(
+                                    context: context,
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                          maxHeight: sh(50), minWidth: sw(100)),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const TextWidget.bold('Select Team'),
+                                          const VSpace(),
+                                          TeamsPage(
+                                            returnBloc: true,
+                                            onTap: (AllTeamDocModel? doc) {
+                                              assignTeamCubit.reset();
+                                              assignTeamCubit
+                                                  .updateTeamId(doc?.id);
+                                              assignTeamCubit
+                                                  .updatePotholeId(entity?.id);
+                                              assignTeamBloc.add(AssignTeam(
+                                                  assignTeamCubit.state));
+                                            },
+                                          ),
+                                        ],
                                       ),
-                                    );
-                                  } else {
-                                    assignTeamBloc.add(
-                                      AssignTeam(
-                                        AssignTeamParam(entity?.id ?? ''),
-                                      ),
-                                    );
-                                  }
+                                    ),
+                                  );
+                                  // if (entity?.status.toLowerCase() ==
+                                  //     'ASSIGNED'.toLowerCase()) {
+                                  //   addToScheduleBloc.add(
+                                  //     AddToSchedule(
+                                  //       AssignTeamParam(entity?.id ?? '', ''),
+                                  //     ),
+                                  //   );
+                                  // } else {
+                                  //   assignTeamBloc.add(
+                                  //     AssignTeam(
+                                  //       AssignTeamParam(entity?.id ?? '', ''),
+                                  //     ),
+                                  //   );
+                                  // }
                                 },
                               );
                       },

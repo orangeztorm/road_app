@@ -1,5 +1,16 @@
 import 'package:road_app/app/__app.dart';
 import 'package:road_app/features/road_app/__road_app.dart';
+import 'package:road_app/features/road_app/presentation/blocs/admin/all_admin_bloc/all_admin_bloc.dart';
+import 'package:road_app/features/road_app/presentation/blocs/admin/all_teams_bloc/all_teams_bloc.dart';
+import 'package:road_app/features/road_app/presentation/blocs/admin/complete_pothole_assesment_bloc/complete_pothole_assesment_bloc.dart';
+import 'package:road_app/features/road_app/presentation/blocs/admin/create_admin_bloc/create_admin_bloc.dart';
+import 'package:road_app/features/road_app/presentation/blocs/admin/create_team_bloc/create_team_bloc.dart';
+import 'package:road_app/features/road_app/presentation/cubits/admin/all_admin_list_cubit.dart';
+import 'package:road_app/features/road_app/presentation/cubits/admin/all_teams_cubit.dart';
+import 'package:road_app/features/road_app/presentation/cubits/admin/assign_team_cubit.dart';
+import 'package:road_app/features/road_app/presentation/cubits/admin/create_admin_cubit.dart';
+import 'package:road_app/features/road_app/presentation/cubits/admin/create_teams_cubit.dart';
+
 void setUpRoadAppLocator() {
   // Data Sources
   getIt.registerLazySingleton<RoadAppRemoteDataSource>(
@@ -91,6 +102,36 @@ void setUpRoadAppLocator() {
     ),
   );
 
+  getIt.registerLazySingleton<AllAdminBloc>(
+    () => AllAdminBloc(
+      repository: getIt(),
+    ),
+  );
+
+  getIt.registerLazySingleton<AllTeamsBloc>(
+    () => AllTeamsBloc(
+      repository: getIt(),
+    ),
+  );
+
+  getIt.registerLazySingleton<CompletePotholeAssesmentBloc>(
+    () => CompletePotholeAssesmentBloc(
+      repository: getIt(),
+    ),
+  );
+
+  getIt.registerLazySingleton<CreateAdminBloc>(
+    () => CreateAdminBloc(
+      repository: getIt(),
+    ),
+  );
+
+  getIt.registerLazySingleton<CreateTeamBloc>(
+    () => CreateTeamBloc(
+      repository: getIt(),
+    ),
+  );
+
   // cubits
   getIt.registerLazySingleton<AdminLoginCubit>(
     () => AdminLoginCubit(),
@@ -122,5 +163,25 @@ void setUpRoadAppLocator() {
 
   getIt.registerLazySingleton<DetectPotholeCubit>(
     () => DetectPotholeCubit(),
+  );
+
+  getIt.registerLazySingleton<AllAdminsListCubit>(
+    () => AllAdminsListCubit(),
+  );
+
+  getIt.registerLazySingleton<AllTeamsListCubit>(
+    () => AllTeamsListCubit(),
+  );
+
+  getIt.registerLazySingleton<CreateTeamsCubit>(
+    () => CreateTeamsCubit(),
+  );
+
+  getIt.registerLazySingleton<CreateAdminCubit>(
+    () => CreateAdminCubit(),
+  );
+
+  getIt.registerLazySingleton<AssignTeamCubit>(
+    () => AssignTeamCubit(),
   );
 }

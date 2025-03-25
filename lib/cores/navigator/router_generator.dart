@@ -7,6 +7,8 @@ import 'package:road_app/cores/__cores.dart';
 import 'package:road_app/features/road_app/presentation/pages/authority/authority_login_page.dart';
 import 'package:road_app/features/road_app/presentation/pages/authority/camera_page.dart';
 import 'package:road_app/features/road_app/presentation/pages/authority/cav_schedule_page.dart';
+import 'package:road_app/features/road_app/presentation/pages/authority/create_team_page.dart';
+import 'package:road_app/features/road_app/presentation/pages/authority/teams_page.dart';
 import 'package:road_app/features/road_app/presentation/pages/user/map_page.dart';
 import 'package:road_app/features/road_app/presentation/pages/user/notification_page.dart';
 import 'package:road_app/features/road_app/presentation/pages/user/notification_settings_page.dart';
@@ -46,6 +48,12 @@ class RouteGenerator {
 
       case MapPage.routeName:
         return pageRoute(const MapPage());
+
+      case TeamsPage.routeName:
+        return pageRoute(const TeamsPage());
+
+      case CreateTeamPage.routeName:
+        return pageRoute(const CreateTeamPage());
 
       default:
         return errorRoute();
