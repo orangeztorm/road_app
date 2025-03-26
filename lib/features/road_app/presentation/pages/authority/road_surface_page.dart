@@ -293,6 +293,12 @@ class ViewImageBottomSheet extends StatelessWidget {
           'lat: ${entity?.geometry.coordinates.first} lng: ${entity?.geometry.coordinates.last}',
         ),
         TextWidget(
+          'Ml confidence: ${entity?.confidence.toStringAsFixed(2)} ',
+        ),
+        TextWidget(
+          'Detection count: ${entity?.detectionCount} ',
+        ),
+        TextWidget(
           DateTimeHelper.formatDateMMMMDYATHMMA(
             entity?.firstDetected ?? DateTime.now(),
           ),

@@ -339,59 +339,67 @@ class CompletePotholeBottomSheet extends StatelessWidget {
           fontSize: 16,
           textAlign: TextAlign.center,
         ),
+        const VSpace(5),
+        TextWidget.light('Ml confidence: ${schedule.pothole?.confidence ?? 0}'),
+        TextWidget.light(
+            'Detection count: ${schedule.pothole?.detectionCount ?? 0}'),
         const VSpace(20),
-        BlocConsumer<CompletePotholeAssesmentBloc,
-            CompletePotholeAssesmentState>(
-          bloc: completePotholeAssesmentBloc,
-          listener: (context, state) {
-            if (state.status.isFailure) {
-              Toast.useContext(
-                  context: context,
-                  message:
-                      state.failures?.message ?? AppStrings.somethingWentWrong);
-            } else if (state.status.isSuccess) {
-              AppRouter.instance.goBack();
-              Toast.showSuccess('Completed');
-              final CavScheduleCubit getCavSchedulesListCubit =
-                  getIt<CavScheduleCubit>();
-              final CavSchedulesBloc getCavSchedulesListBloc =
-                  getIt<CavSchedulesBloc>();
+        Visibility(
+          visible: schedule.status == 'SCHEDULED',
+          child: BlocConsumer<CompletePotholeAssesmentBloc,
+              CompletePotholeAssesmentState>(
+            bloc: completePotholeAssesmentBloc,
+            listener: (context, state) {
+              if (state.status.isFailure) {
+                Toast.useContext(
+                    context: context,
+                    message: state.failures?.message ??
+                        AppStrings.somethingWentWrong);
+              } else if (state.status.isSuccess) {
+                AppRouter.instance.goBack();
+                Toast.showSuccess('Completed');
+                final CavScheduleCubit getCavSchedulesListCubit =
+                    getIt<CavScheduleCubit>();
+                final CavSchedulesBloc getCavSchedulesListBloc =
+                    getIt<CavSchedulesBloc>();
 
-              getCavSchedulesListCubit.getInitialList(getCavSchedulesListBloc);
-            }
-          },
-          builder: (context, state) {
-            return state.status.isLoading
-                ? const Button.loading()
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        child: Button(
-                          text: 'Cancel',
-                          onTap: () {
-                            AppRouter.instance.goBack();
-                          },
+                getCavSchedulesListCubit
+                    .getInitialList(getCavSchedulesListBloc);
+              }
+            },
+            builder: (context, state) {
+              return state.status.isLoading
+                  ? const Button.loading()
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Expanded(
+                          child: Button(
+                            text: 'Cancel',
+                            onTap: () {
+                              AppRouter.instance.goBack();
+                            },
+                          ),
                         ),
-                      ),
-                      const HSpace(10),
-                      Expanded(
-                        child: Button(
-                          text: 'Complete',
-                          onTap: () {
-                            completePotholeAssesmentBloc.add(
-                              CompletePotholeAssesment(
-                                CompletePotholeParam(
-                                  schedule.pothole?.id ?? '',
+                        const HSpace(10),
+                        Expanded(
+                          child: Button(
+                            text: 'Complete',
+                            onTap: () {
+                              completePotholeAssesmentBloc.add(
+                                CompletePotholeAssesment(
+                                  CompletePotholeParam(
+                                    schedule.pothole?.id ?? '',
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                    ],
-                  );
-          },
+                      ],
+                    );
+            },
+          ),
         ),
         const VSpace(20),
       ],
