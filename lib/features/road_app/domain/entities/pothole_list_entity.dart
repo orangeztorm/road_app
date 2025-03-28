@@ -305,6 +305,7 @@ class PotholeEntity extends Equatable {
   final bool isTeamAssigned;
   final double confidence;
   final GeometryEntity geometry;
+  final List<DetectionDataEntity>? detectionData;
   final String severity;
   final int detectionCount;
   final String? imageUrl;
@@ -320,6 +321,7 @@ class PotholeEntity extends Equatable {
     required this.id,
     required this.status,
     required this.isTeamAssigned,
+    required this.detectionData,
     required this.confidence,
     required this.geometry,
     required this.severity,
@@ -340,6 +342,7 @@ class PotholeEntity extends Equatable {
         isTeamAssigned: false,
         confidence: 0.0,
         geometry: GeometryEntity.empty(),
+        detectionData: const [],
         severity: 'LOW',
         detectionCount: 0,
         imageUrl: null,
@@ -368,6 +371,30 @@ class PotholeEntity extends Equatable {
         createdAt,
         updatedAt,
       ];
+}
+
+class DetectionDataEntity extends Equatable {
+  final String? type;
+  final double? confidence;
+  final String? id;
+  final String? detectionDatumId;
+
+  const DetectionDataEntity({
+    required this.type,
+    required this.confidence,
+    required this.id,
+    required this.detectionDatumId,
+  });
+
+  Map<String, dynamic> toJson() => {
+        "type": type,
+        "confidence": confidence,
+        "_id": id,
+        "id": detectionDatumId,
+      };
+
+  @override
+  List<Object?> get props => [type, confidence, id, detectionDatumId];
 }
 
 class PothHoleMetaDataEntity extends Equatable {

@@ -319,6 +319,9 @@ class CompletePotholeBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //     final detectionData = entity?.detectionData ?? [];
+    // final type =
+    //     detectionData.isNotEmpty ? detectionData.last.type : AppStrings.na;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

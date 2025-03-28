@@ -289,7 +289,7 @@ wearing a Black Panther costume - he got his''';
   static const beamTagUpdated = 'Beam tag updated';
   static const profileUpdated = 'Profile Updated';
 
-  static const String na = 'N/A';
+  static const String na = '--';
   static const String resend = 'Resend';
   static const String notImplemented = 'Not implemented';
 }

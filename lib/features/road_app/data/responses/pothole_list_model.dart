@@ -208,6 +208,7 @@ class PotholeModel extends PotholeEntity {
     required super.id,
     required super.status,
     required super.isTeamAssigned,
+    required super.detectionData,
     required super.confidence,
     required super.imageUrl,
     required super.geometry,
@@ -226,6 +227,11 @@ class PotholeModel extends PotholeEntity {
         id: json["id"] ?? "",
         status: json["status"] ?? "UNKNOWN",
         isTeamAssigned: json['is_team_assigned'] ?? false,
+        detectionData:
+            json["detection_data"] == null || json["detection_data"] == []
+                ? null
+                : List<DetectionDataModel>.from(json["detection_data"]
+                    .map((x) => DetectionDataModel.fromJson(x))),
         confidence: (json["ml_confidence"] ?? 0).toDouble(),
         geometry: GeometryModel.fromJson(json["geometry"] ?? {}),
         severity: json["severity"] ?? "LOW",
@@ -246,6 +252,23 @@ class PotholeModel extends PotholeEntity {
             [],
         createdAt: DateTime.tryParse(json["createdAt"] ?? "") ?? DateTime.now(),
         updatedAt: DateTime.tryParse(json["updatedAt"] ?? "") ?? DateTime.now(),
+      );
+}
+
+class DetectionDataModel extends DetectionDataEntity {
+  const DetectionDataModel({
+    required super.type,
+    required super.confidence,
+    required super.id,
+    required super.detectionDatumId,
+  });
+
+  factory DetectionDataModel.fromJson(Map<String, dynamic> json) =>
+      DetectionDataModel(
+        type: json["type"],
+        confidence: json["confidence"]?.toDouble(),
+        id: json["_id"],
+        detectionDatumId: json["id"],
       );
 }
 

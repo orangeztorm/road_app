@@ -275,6 +275,9 @@ class ViewImageBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isAssigned = entity?.isTeamAssigned;
+    final detectionData = entity?.detectionData ?? [];
+    final type =
+        detectionData.isNotEmpty ? detectionData.last.type : AppStrings.na;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -294,6 +297,9 @@ class ViewImageBottomSheet extends StatelessWidget {
         ),
         TextWidget(
           'Ml confidence: ${entity?.confidence.toStringAsFixed(2)} ',
+        ),
+        TextWidget(
+          'Type: $type ',
         ),
         TextWidget(
           'Detection count: ${entity?.detectionCount} ',
