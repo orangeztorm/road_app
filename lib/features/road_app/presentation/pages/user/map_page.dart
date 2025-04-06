@@ -1,434 +1,401 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:road_app/app/locator.dart';
+import 'package:http/http.dart' as http;
+import 'package:location/location.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+
+import 'package:road_app/app/__app.dart';
 import 'package:road_app/cores/__cores.dart';
-import 'package:road_app/cores/push_notification/notification_service.dart';
-import 'package:road_app/features/__features.dart';
+import 'package:road_app/features/road_app/presentation/_presentation.dart';
 
-class MapPage extends StatefulWidget {
-  static const String routeName = '/map_page';
-  const MapPage({super.key});
+class TrackablePothole {
+  final String id;
+  final LatLng position;
+  final LatLng projectedPoint;
+  final double distanceFromStart;
+  bool notified;
 
-  @override
-  State<MapPage> createState() => _MapPageState();
+  TrackablePothole({
+    required this.id,
+    required this.position,
+    required this.projectedPoint,
+    required this.distanceFromStart,
+    this.notified = false,
+  });
 }
 
-class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
-  String? _currentNotifiedPothole;
-  int _notificationId = 1; // Unique notification ID
-  final Set<String> _notifiedPotholeIds = {};
+class ProjectionResult {
+  final LatLng point;
+  final int index;
 
-  Marker? _lastNotifiedPothole;
-  OverlayEntry? _overlayEntry;
-  final NotificationService _notificationService = NotificationService();
+  ProjectionResult(this.point, this.index);
+}
+
+class MapScreen extends StatefulWidget {
+  final LatLng? destination;
+  final String? destinationAddress;
+
+  const MapScreen({Key? key, this.destination, this.destinationAddress})
+      : super(key: key);
+
+  @override
+  State<MapScreen> createState() => _MapScreenState();
+}
+
+class _MapScreenState extends State<MapScreen> {
+  GoogleMapController? _mapController;
   final NearbyPotholeBloc nearbyPotholeBloc = getIt<NearbyPotholeBloc>();
   final NearbyPotholeCubit nearbyPotholeCubit = getIt<NearbyPotholeCubit>();
-  GoogleMapController? _mapController;
-  LatLng? _currentPosition;
-  StreamSubscription<LocationData>? _locationSubscription;
-  Set<Marker> _markers = {}; // Only fetched potholes will be here
-  final double _alertRadius = 350.0;
-  late AnimationController _animationController;
-  late Animation<double> _animation;
-  Location location = Location();
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+  final String _googleMapsApiKey = AppConstants.googleApiKey;
+
+  LatLng? _currentLocation;
+  LatLng? _destination;
+  List<LatLng> _routePolyline = [];
+
+  List<TrackablePothole> _trackablePotholes = [];
+  Set<String> _notifiedPotholeIds = {};
+  Map<String, Marker> _potholeMarkers = {};
+  TrackablePothole? _activePotholeTracker;
+  Timer? _notificationLoopTimer;
+
+  int? _popupDistance;
+  bool _showPopup = false;
+
+  static const double _notificationDistance = 200.0;
 
   @override
   void initState() {
     super.initState();
-    _initializeServices();
-    _setupNotifications();
-    _initLocation();
-
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-
-    _animation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
+    _initializeNotifications();
+    if (widget.destination != null) _destination = widget.destination;
+    _initLocationTracking();
+    _startPotholePolling();
   }
 
-  Future<void> _showLivePotholeNotification(int distance) async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'pothole_alert_channel',
-      'Pothole Alerts',
-      importance: Importance.max,
-      priority: Priority.high,
-      ongoing: true, // Keeps it sticky
-      autoCancel: false, // Prevents user from swiping it away
-    );
-
-    const NotificationDetails platformDetails =
-        NotificationDetails(android: androidDetails);
-
-    await flutterLocalNotificationsPlugin.show(
-      _notificationId,
-      '🚨 Pothole Alert!',
-      'Pothole ahead! ',
-      platformDetails,
-    );
+  Future<void> _initializeNotifications() async {
+    const androidSettings = AndroidInitializationSettings('ic_launcher');
+    const initSettings = InitializationSettings(android: androidSettings);
+    await flutterLocalNotificationsPlugin.initialize(initSettings);
   }
 
-  /// Function to remove the notification once user moves past
-  Future<void> _removeNotification() async {
-    await flutterLocalNotificationsPlugin.cancel(_notificationId);
-  }
-
-  void _showPopupNotification(int distance) {
-    if (_overlayEntry != null) return; // Prevent duplicates
-
-    _overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: 150.0,
-        left: 10.0,
-        right: 10.0,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.redAccent,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Icon(Icons.warning_amber_rounded, color: Colors.white),
-                Expanded(
-                  child: Text(
-                    '🚧 Pothole ahead!.',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-
-    Overlay.of(context).insert(_overlayEntry!);
-  }
-
-  /// Function to remove the in-app notification
-  void _removePopupNotification() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-  }
-
-  Future<void> _setupNotifications() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-  }
-
-  Future<void> _initializeServices() async {
-    await _notificationService.initialize();
-  }
-
-  Future<void> _initLocation() async {
-    bool serviceEnabled;
-    PermissionStatus permissionGranted;
-
-    serviceEnabled = await location.serviceEnabled();
-    if (!serviceEnabled) {
-      serviceEnabled = await location.requestService();
-      if (!serviceEnabled) return;
-    }
-
-    permissionGranted = await location.hasPermission();
-    if (permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await location.requestPermission();
-      if (permissionGranted != PermissionStatus.granted) return;
-    }
-
-    location.changeSettings(
-      accuracy: LocationAccuracy.high,
-      interval: 500,
-      distanceFilter: 5,
-    );
-
-    LocationData locationData = await location.getLocation();
-    _updatePosition(locationData);
-
-    _locationSubscription = location.onLocationChanged.listen(_updatePosition);
-  }
-
-  void _updatePosition(LocationData locationData) async {
-    LatLng newPosition =
-        LatLng(locationData.latitude!, locationData.longitude!);
-
-    if (_currentPosition == null) {
-      setState(() {
-        _currentPosition = newPosition;
-      });
-    } else {
-      _animateMarker(_currentPosition!, newPosition);
-
-      // Fetch new potholes when user moves significantly
-      nearbyPotholeCubit.updateLatLng(RequiredNum.dirty(newPosition.latitude),
-          RequiredNum.dirty(newPosition.longitude));
-      nearbyPotholeBloc.add(FetchNearbyPotholes(nearbyPotholeCubit.state));
-    }
-
-    if (_mapController != null) {
-      _mapController!.animateCamera(
-        CameraUpdate.newLatLng(newPosition),
-      );
-    }
-
-    _checkForNearbyPotholes(newPosition);
-  }
-
-  void _animateMarker(LatLng startPosition, LatLng endPosition) {
-    _animationController.reset();
-
-    _animation = Tween<double>(begin: 0, end: 1).animate(_animationController)
-      ..addListener(() {
-        final double lat = ui.lerpDouble(
-          startPosition.latitude,
-          endPosition.latitude,
-          _animation.value,
-        )!;
-        final double lng = ui.lerpDouble(
-          startPosition.longitude,
-          endPosition.longitude,
-          _animation.value,
-        )!;
-
-        setState(() {
-          _currentPosition = LatLng(lat, lng);
-        });
-      });
-
-    _animationController.forward();
-  }
-
-  Future<bool> _isMovingTowardPothole(LatLng userPos, LatLng potholePos) async {
-    double bearingToPothole = _calculateBearing(
-      userPos.latitude,
-      userPos.longitude,
-      potholePos.latitude,
-      potholePos.longitude,
-    );
-
-    // Get user's movement heading
-    LocationData locationData = await location.getLocation();
-    double? userBearing = locationData.heading;
-
-    // ✅ If heading is null, estimate movement direction from last position
-    if (userBearing == null || userBearing == 0.0) {
-      debugPrint("⚠️ Heading is null, estimating direction...");
-      if (_currentPosition != null) {
-        userBearing = _calculateBearing(
-          _currentPosition!.latitude,
-          _currentPosition!.longitude,
-          userPos.latitude,
-          userPos.longitude,
+  void _startPotholePolling() {
+    final location = Location();
+    Timer.periodic(const Duration(seconds: 30), (timer) async {
+      try {
+        final loc = await location.getLocation();
+        nearbyPotholeCubit.updateLatLng(
+          RequiredNum.dirty(loc.latitude!),
+          RequiredNum.dirty(loc.longitude!),
         );
-      } else {
-        return false; // No valid movement detected
+        nearbyPotholeBloc.add(FetchNearbyPotholes(nearbyPotholeCubit.state));
+      } catch (e) {
+        debugPrint('Polling error: $e');
+      }
+    });
+  }
+
+  Future<void> _initLocationTracking() async {
+    final location = Location();
+    if (!await location.serviceEnabled()) {
+      if (!await location.requestService()) return;
+    }
+    if (await location.hasPermission() == PermissionStatus.denied) {
+      if (await location.requestPermission() != PermissionStatus.granted)
+        return;
+    }
+
+    final loc = await location.getLocation();
+    _currentLocation = LatLng(loc.latitude!, loc.longitude!);
+    if (_currentLocation != null && _destination != null) {
+      await _rebuildRouteAndPotholes();
+    }
+
+    location.onLocationChanged.listen((loc) async {
+      final userLoc = LatLng(loc.latitude!, loc.longitude!);
+      await _updateUserLocation(userLoc);
+    });
+  }
+
+  Future<void> _rebuildRouteAndPotholes() async {
+    if (_currentLocation == null || _destination == null) return;
+
+    _routePolyline = await _getRoutePolyline(
+      origin: _currentLocation!,
+      destination: _destination!,
+    );
+
+    final fetched = nearbyPotholeBloc.state.potholes;
+    final List<TrackablePothole> filtered = [];
+
+    for (final pothole in fetched) {
+      final LatLng latLng = LatLng(
+        pothole.geometry.coordinates.last,
+        pothole.geometry.coordinates.first,
+      );
+
+      final projection = _projectOnPolyline(latLng, _routePolyline);
+      final distanceFromPath = _calculateDistance(latLng, projection.point);
+
+      if (distanceFromPath <= 30) {
+        final distFromStart =
+            _getDistanceAlongPolyline(_routePolyline, projection.index);
+        filtered.add(TrackablePothole(
+          id: pothole.id.toString(),
+          position: latLng,
+          projectedPoint: projection.point,
+          distanceFromStart: distFromStart,
+        ));
       }
     }
 
-    // ✅ Determine if user is moving toward the pothole
-    double angleDifference = (bearingToPothole - userBearing).abs();
-    bool isMovingForward = angleDifference < 60;
+    _trackablePotholes = filtered;
+    _activePotholeTracker = null;
 
-    debugPrint(
-        "📍 Bearing to pothole: $bearingToPothole°, User heading: $userBearing°, Angle diff: $angleDifference°, Moving forward: $isMovingForward");
+    _potholeMarkers.clear();
+    for (var pothole in _trackablePotholes) {
+      _potholeMarkers[pothole.id] = Marker(
+        markerId: MarkerId(pothole.id),
+        position: pothole.position,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        infoWindow: const InfoWindow(title: "Pothole Detected"),
+      );
+    }
 
-    return isMovingForward;
+    setState(() {});
   }
 
-  double _calculateBearing(double lat1, double lon1, double lat2, double lon2) {
-    double dLon = _degreesToRadians(lon2 - lon1);
-    double y = sin(dLon) * cos(_degreesToRadians(lat2));
-    double x = cos(_degreesToRadians(lat1)) * sin(_degreesToRadians(lat2)) -
-        sin(_degreesToRadians(lat1)) * cos(_degreesToRadians(lat2)) * cos(dLon);
-    double bearing = atan2(y, x);
-    return (bearing * 180 / pi + 360) % 360;
+  Future<void> _updateUserLocation(LatLng userLocation) async {
+    setState(() => _currentLocation = userLocation);
+    _mapController?.animateCamera(CameraUpdate.newLatLng(_currentLocation!));
+
+    if (_routePolyline.isEmpty || _destination == null) return;
+
+    final proj = _projectOnPolyline(userLocation, _routePolyline);
+    final dist = _calculateDistance(userLocation, proj.point);
+
+    if (dist > 50) {
+      await _rebuildRouteAndPotholes();
+    } else {
+      checkAndNotifyNextPothole(userLocation);
+    }
   }
 
-  double _degreesToRadians(double degrees) {
-    return degrees * pi / 180;
-  }
+  void checkAndNotifyNextPothole(LatLng userLocation) {
+    final userProj = _projectOnPolyline(userLocation, _routePolyline);
+    final userDist = _getDistanceAlongPolyline(_routePolyline, userProj.index);
 
-  Future<void> _checkForNearbyPotholes(LatLng userPosition) async {
-    if (_currentPosition == null || _markers.isEmpty) {
-      debugPrint("🚨 No position or markers found.");
+    if (_activePotholeTracker != null) {
+      if (userDist > _activePotholeTracker!.distanceFromStart + 50) {
+        _notificationLoopTimer?.cancel();
+        _notificationLoopTimer = null;
+        setState(() {
+          _showPopup = false;
+          _popupDistance = null;
+          _activePotholeTracker = null;
+        });
+      }
       return;
     }
 
-    debugPrint("🔍 Checking for potholes within $_alertRadius meters...");
+    for (final pothole in _trackablePotholes) {
+      if (pothole.notified) continue;
 
-    // If there's a current pothole, check if it's passed
-    if (_currentNotifiedPothole != null) {
-      Marker? lastPothole = _markers.firstWhere(
-        (m) => m.markerId.value == _currentNotifiedPothole,
-        orElse: () => const Marker(markerId: MarkerId('')),
-      );
+      final distToPothole = pothole.distanceFromStart - userDist;
+      if (distToPothole > 0 && distToPothole <= _notificationDistance) {
+        pothole.notified = true;
+        _notifiedPotholeIds.add(pothole.id);
+        setState(() => _activePotholeTracker = pothole);
 
-      if (lastPothole.markerId.value.isNotEmpty) {
-        double distanceFromLast = _calculateDistance(
-          _currentPosition!.latitude,
-          _currentPosition!.longitude,
-          lastPothole.position.latitude,
-          lastPothole.position.longitude,
+        _notificationLoopTimer = Timer.periodic(
+          const Duration(seconds: 5),
+          (timer) {
+            final currentDist = pothole.distanceFromStart -
+                _getDistanceAlongPolyline(_routePolyline, userProj.index);
+            if (currentDist > 0 && currentDist <= _notificationDistance) {
+              _showLocalNotification(
+                currentDist.round(),
+                "Pothole Ahead",
+                "You’re ${currentDist.round()}m from a pothole!",
+              );
+            }
+          },
         );
 
-        if (distanceFromLast > 50) {
-          // ✅ User has passed the last pothole, reset it
-          debugPrint("✅ Passed last pothole, looking for next...");
-          _currentNotifiedPothole = null;
-          _removeNotification();
-          _removePopupNotification();
-        }
-      }
-    }
-
-    // Find the next pothole in front
-    List<Marker> potholesAhead = _markers.where((marker) {
-      if (marker.markerId.value == 'userLocation') return false;
-
-      double distance = _calculateDistance(
-        _currentPosition!.latitude,
-        _currentPosition!.longitude,
-        marker.position.latitude,
-        marker.position.longitude,
-      );
-
-      return distance <= _alertRadius;
-    }).toList();
-
-    if (potholesAhead.isNotEmpty) {
-      potholesAhead.sort((a, b) {
-        double distanceA = _calculateDistance(
-          _currentPosition!.latitude,
-          _currentPosition!.longitude,
-          a.position.latitude,
-          a.position.longitude,
-        );
-        double distanceB = _calculateDistance(
-          _currentPosition!.latitude,
-          _currentPosition!.longitude,
-          b.position.latitude,
-          b.position.longitude,
-        );
-        return distanceA.compareTo(distanceB);
-      });
-
-      Marker nearestPothole = potholesAhead.first;
-      double nearestDistance = _calculateDistance(
-        _currentPosition!.latitude,
-        _currentPosition!.longitude,
-        nearestPothole.position.latitude,
-        nearestPothole.position.longitude,
-      );
-
-      if (_currentNotifiedPothole == null && nearestDistance <= 200) {
-        debugPrint('🚨 Pothole detected ahead ');
-        _showLivePotholeNotification(nearestDistance.round());
-        _showPopupNotification(nearestDistance.round());
-        _currentNotifiedPothole =
-            nearestPothole.markerId.value; // Store pothole ID
+        break;
       }
     }
   }
 
-  double _calculateDistance(
-      double lat1, double lon1, double lat2, double lon2) {
-    const double earthRadius = 6371000;
-    double dLat = _degreesToRadians(lat2 - lat1);
-    double dLon = _degreesToRadians(lon2 - lon1);
+  Future<void> _showLocalNotification(
+      int distance, String title, String body) async {
+    setState(() {
+      _popupDistance = distance;
+      _showPopup = true;
+    });
 
-    double a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_degreesToRadians(lat1)) *
-            cos(_degreesToRadians(lat2)) *
-            sin(dLon / 2) *
-            sin(dLon / 2);
-    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    const androidDetails = AndroidNotificationDetails(
+      'pothole_alert_channel',
+      'Pothole Alerts',
+      channelDescription: 'Alerts about upcoming potholes',
+      importance: Importance.max,
+      priority: Priority.high,
+      ongoing: true,
+      autoCancel: false,
+    );
 
-    return earthRadius * c;
+    const platformDetails = NotificationDetails(android: androidDetails);
+    await flutterLocalNotificationsPlugin.show(
+        999, title, body, platformDetails);
   }
 
-  @override
-  void dispose() {
-    _locationSubscription?.cancel();
-    _animationController.dispose();
-    _mapController?.dispose();
-    super.dispose();
+  Future<List<LatLng>> _getRoutePolyline(
+      {required LatLng origin, required LatLng destination}) async {
+    final url = Uri.parse(
+      'https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=driving&key=$_googleMapsApiKey',
+    );
+    final response = await http.get(url);
+    final data = json.decode(response.body);
+    final encoded = data['routes'][0]['overview_polyline']['points'];
+    return PolylinePoints()
+        .decodePolyline(encoded)
+        .map((e) => LatLng(e.latitude, e.longitude))
+        .toList();
+  }
+
+  double _calculateDistance(LatLng a, LatLng b) {
+    const R = 6371000;
+    final dLat = _degToRad(b.latitude - a.latitude);
+    final dLon = _degToRad(b.longitude - a.longitude);
+    final lat1 = _degToRad(a.latitude);
+    final lat2 = _degToRad(b.latitude);
+    final aCalc = sin(dLat / 2) * sin(dLat / 2) +
+        sin(dLon / 2) * sin(dLon / 2) * cos(lat1) * cos(lat2);
+    final c = 2 * atan2(sqrt(aCalc), sqrt(1 - aCalc));
+    return R * c;
+  }
+
+  double _degToRad(double deg) => deg * pi / 180;
+
+  ProjectionResult _projectOnPolyline(LatLng point, List<LatLng> polyline) {
+    double minDist = double.infinity;
+    int index = 0;
+    LatLng closest = polyline.first;
+    for (int i = 0; i < polyline.length - 1; i++) {
+      final p = _projectPointOnSegment(point, polyline[i], polyline[i + 1]);
+      final dist = _calculateDistance(point, p);
+      if (dist < minDist) {
+        minDist = dist;
+        index = i;
+        closest = p;
+      }
+    }
+    return ProjectionResult(closest, index);
+  }
+
+  LatLng _projectPointOnSegment(LatLng p, LatLng a, LatLng b) {
+    final dx = b.longitude - a.longitude;
+    final dy = b.latitude - a.latitude;
+    if (dx == 0 && dy == 0) return a;
+    final t =
+        ((p.longitude - a.longitude) * dx + (p.latitude - a.latitude) * dy) /
+            (dx * dx + dy * dy);
+    if (t < 0) return a;
+    if (t > 1) return b;
+    return LatLng(a.latitude + t * dy, a.longitude + t * dx);
+  }
+
+  double _getDistanceAlongPolyline(List<LatLng> polyline, int upToIndex) {
+    double distance = 0;
+    for (int i = 0; i < upToIndex; i++) {
+      distance += _calculateDistance(polyline[i], polyline[i + 1]);
+    }
+    return distance;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pothole Map'),
-      ),
-      body: _currentPosition == null
-          ? const Center(child: CircularProgressIndicator())
-          : BlocConsumer<NearbyPotholeBloc, NearbyPotholeState>(
-              bloc: nearbyPotholeBloc,
-              listener: _nearbyPotholeListener,
-              builder: (context, state) {
-                return GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: _currentPosition!,
-                    zoom: 15,
+    return BlocListener<NearbyPotholeBloc, NearbyPotholeState>(
+      bloc: nearbyPotholeBloc,
+      listener: (context, state) async {
+        if (state.status.isSuccess) {
+          await _rebuildRouteAndPotholes();
+        } else {
+          debugPrint("Failed to fetch potholes: ${state.failure?.message}");
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Route and Pothole Detection')),
+        body: _currentLocation == null
+            ? const Center(child: CircularProgressIndicator())
+            : Stack(
+                children: [
+                  GoogleMap(
+                    initialCameraPosition:
+                        CameraPosition(target: _currentLocation!, zoom: 15),
+                    onMapCreated: (controller) => _mapController = controller,
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: true,
+                    onTap: (pos) => _setDestination(pos),
+                    markers: {
+                      if (_destination != null)
+                        Marker(
+                            markerId: const MarkerId('destination'),
+                            position: _destination!),
+                      ..._potholeMarkers.values,
+                    },
+                    polylines: {
+                      if (_routePolyline.isNotEmpty)
+                        Polyline(
+                          polylineId: const PolylineId('route'),
+                          points: _routePolyline,
+                          width: 5,
+                          color: Colors.blue,
+                        ),
+                    },
                   ),
-                  markers: _markers, // Only potholes from API
-                  myLocationEnabled: true, // No need for blue marker
-                  myLocationButtonEnabled: true,
-                  compassEnabled: true,
-                  onMapCreated: (GoogleMapController controller) {
-                    setState(() {
-                      _mapController = controller;
-                    });
-                  },
-                );
-              },
-            ),
+                  if (_showPopup && _popupDistance != null)
+                    Positioned(
+                      top: 80,
+                      left: 20,
+                      right: 20,
+                      child: Material(
+                        elevation: 8,
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.red,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.warning, color: Colors.white),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  '⚠️ Pothole $_popupDistance meters ahead!',
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+      ),
     );
   }
 
-  void _nearbyPotholeListener(BuildContext context, NearbyPotholeState state) {
-    if (state.status.isSuccess) {
-      setState(() {
-        _markers.clear(); // Overwrite existing markers
-        for (var pothole in state.potholes) {
-          _markers.add(
-            Marker(
-              markerId: MarkerId(pothole.id.toString()), // Unique pothole ID
-              position: LatLng(pothole.geometry.coordinates.last,
-                  pothole.geometry.coordinates.first),
-              icon: BitmapDescriptor.defaultMarkerWithHue(
-                  BitmapDescriptor.hueRed),
-              infoWindow: const InfoWindow(title: "Pothole Detected"),
-            ),
-          );
-        }
-      });
-    }
+  void _setDestination(LatLng destination) async {
+    _destination = destination;
+    await _rebuildRouteAndPotholes();
   }
 }

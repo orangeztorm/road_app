@@ -147,7 +147,7 @@ class _CameraCapturePageState extends State<CameraCapturePage> {
       });
 
       log("Image Captured: $_capturedImagePath");
-      log("lat: ${position.latitude},");
+      log("lat: ${position.latitude}");
       log("lng: ${position.longitude}");
       log("Address: $_streetAddress");
       log("------------------------");

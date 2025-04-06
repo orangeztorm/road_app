@@ -5,6 +5,7 @@ import 'package:road_app/app/__app.dart';
 import 'package:road_app/cores/__cores.dart';
 import 'package:road_app/features/__features.dart';
 import 'package:road_app/features/road_app/presentation/pages/user/map_page.dart';
+import 'package:road_app/features/road_app/presentation/pages/user/select_destination_page.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class NotificationPage extends StatelessWidget {
@@ -54,7 +55,8 @@ class NotificationPage extends StatelessWidget {
       // map fab
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          AppRouter.instance.navigateTo(MapPage.routeName);
+          // AppRouter.instance.navigate(MapScreen());
+          AppRouter.instance.navigate(const LocationSearchView());
         },
         backgroundColor: AppColor.kcPrimaryColor,
         child: const Icon(

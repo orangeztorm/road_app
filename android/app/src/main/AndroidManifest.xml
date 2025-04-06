@@ -24,7 +24,6 @@
 
       <!-- Add your Google Maps API Key here -->
       <!-- AIzaSyDPgW2KTSBBoR5kCIwHjKgYU-18c8tMwIY this people-->
-      <!-- AIzaSyCH_AZKxG4z_DlWCaXMT2IXmcGSGbLLChw this ws-->
       <meta-data
           android:name="com.google.android.geo.API_KEY"
           android:value="AIzaSyDtn22-Bad0ShgnRzAiKM-8AZVFOeQkOiw"/>

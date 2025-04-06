@@ -46,8 +46,8 @@ class RouteGenerator {
       case CameraCapturePage.routeName:
         return pageRoute(const CameraCapturePage());
 
-      case MapPage.routeName:
-        return pageRoute(const MapPage());
+      // case MapPage.routeName:
+      //   return pageRoute(const MapPage());
 
       case TeamsPage.routeName:
         return pageRoute(const TeamsPage());

@@ -1,5 +1,5 @@
 class AppConstants {
-  static const String googleApiKey = "AIzaSyCH_AZKxG4z_DlWCaXMT2IXmcGSGbLLChw";
+  static const String googleApiKey = "AIzaSyDtn22-Bad0ShgnRzAiKM-8AZVFOeQkOiw";
 
   static const List<String> hustleList = ['Yes', 'No'];
 
