@@ -76,6 +76,8 @@ class ApiEndpoints {
   static final String createAdmin = '$_baseUrl/api/v1.0.0/admin';
   static final String createTeams = '$_baseUrl/api/v1.0.0/admin/teams';
   static final String updateTeams = '$_baseUrl/api/v1.0.0/admin/teams';
+  static final String report =
+      '$_baseUrl/api/v1.0.0/admin/portholes/analytics/report';
   static String completePotholeAssesment(id) =>
       '$_baseUrl/api/v1.0.0/cav-schedules/pothole/$id/complete';
 }

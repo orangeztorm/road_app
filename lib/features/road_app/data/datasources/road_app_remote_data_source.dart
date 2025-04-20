@@ -2,6 +2,7 @@ import 'package:road_app/cores/__cores.dart';
 import 'package:road_app/features/__features.dart';
 import 'package:road_app/features/road_app/data/responses/admin/all_admin_model.dart';
 import 'package:road_app/features/road_app/data/responses/admin/all_teams_model.dart';
+import 'package:road_app/features/road_app/data/responses/admin/report_model.dart';
 import 'package:road_app/features/road_app/domain/param/complete_pothole_param.dart';
 import 'package:road_app/features/road_app/presentation/cubits/admin/assign_team_cubit.dart';
 
@@ -17,6 +18,7 @@ abstract class RoadAppRemoteDataSource {
   Future<BaseModel> completeSchedule(RequestParam param);
   Future<BaseModel> assignTeam(RequestParam param);
   Future<CavSchedulesListModel> cavSchedules(RequestParam param);
+  Future<ReportModel> adminReport(RequestParam param);
 
   // user
   Future<BaseModel> listPotholes(RequestParam param);
@@ -279,5 +281,15 @@ class RoadAppRemoteDataSourceImpl implements RoadAppRemoteDataSource {
     );
 
     return BaseModel.fromMap(response);
+  }
+
+  @override
+  Future<ReportModel> adminReport(RequestParam param) async {
+    final Map<String, dynamic> response = await httpHelper.get(
+      ApiEndpoints.report,
+      query: param.toMap(),
+    );
+
+    return ReportModel.fromJson(response);
   }
 }

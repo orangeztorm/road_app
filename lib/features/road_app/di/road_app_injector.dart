@@ -1,5 +1,6 @@
 import 'package:road_app/app/__app.dart';
 import 'package:road_app/features/road_app/__road_app.dart';
+import 'package:road_app/features/road_app/presentation/blocs/admin/admin_report_bloc/admin_report_bloc.dart';
 import 'package:road_app/features/road_app/presentation/blocs/admin/all_admin_bloc/all_admin_bloc.dart';
 import 'package:road_app/features/road_app/presentation/blocs/admin/all_teams_bloc/all_teams_bloc.dart';
 import 'package:road_app/features/road_app/presentation/blocs/admin/complete_pothole_assesment_bloc/complete_pothole_assesment_bloc.dart';
@@ -10,6 +11,7 @@ import 'package:road_app/features/road_app/presentation/cubits/admin/all_teams_c
 import 'package:road_app/features/road_app/presentation/cubits/admin/assign_team_cubit.dart';
 import 'package:road_app/features/road_app/presentation/cubits/admin/create_admin_cubit.dart';
 import 'package:road_app/features/road_app/presentation/cubits/admin/create_teams_cubit.dart';
+import 'package:road_app/features/road_app/presentation/cubits/admin/get_all_report_cubit.dart';
 
 void setUpRoadAppLocator() {
   // Data Sources
@@ -132,7 +134,17 @@ void setUpRoadAppLocator() {
     ),
   );
 
+  getIt.registerLazySingleton<AdminReportBloc>(
+    () => AdminReportBloc(
+      roadAppRepository: getIt(),
+    ),
+  );
+
   // cubits
+  getIt.registerLazySingleton<GetAllReportsCubit>(
+    () => GetAllReportsCubit(),
+  );
+
   getIt.registerLazySingleton<AdminLoginCubit>(
     () => AdminLoginCubit(),
   );

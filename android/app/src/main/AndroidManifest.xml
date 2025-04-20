@@ -28,6 +28,10 @@
           android:name="com.google.android.geo.API_KEY"
           android:value="AIzaSyDtn22-Bad0ShgnRzAiKM-8AZVFOeQkOiw"/>
 
+      <meta-data
+          android:name="com.mapbox.token"
+          android:value="pk.eyJ1Ijoicm9hZGFwcDIwMjUiLCJhIjoiY205b2I4dHFuMDNwaTJpc2ZrbW1neGd1byJ9.DP3s8egmv0No0YYm405n9A"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

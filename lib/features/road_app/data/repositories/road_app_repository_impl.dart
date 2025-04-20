@@ -2,6 +2,7 @@ import 'package:road_app/cores/__cores.dart';
 import 'package:road_app/features/road_app/data/_data.dart';
 import 'package:road_app/features/road_app/data/responses/admin/all_admin_model.dart';
 import 'package:road_app/features/road_app/data/responses/admin/all_teams_model.dart';
+import 'package:road_app/features/road_app/data/responses/admin/report_model.dart';
 import 'package:road_app/features/road_app/data/responses/user/nearby_potholes_model.dart';
 import 'package:road_app/features/road_app/domain/_domain.dart';
 import 'package:fpdart/fpdart.dart';
@@ -65,8 +66,7 @@ class RoadAppRepositoryImpl extends RoadAppRepository {
   // }
 
   @override
-  Future<Either<Failures, BaseModel>> assignTeam(
-      RequestParam param) async {
+  Future<Either<Failures, BaseModel>> assignTeam(RequestParam param) async {
     final action = remoteDataSource.assignTeam(param);
 
     final repoTryCatchHelper = RepoTryCatchHelper<BaseModel>();
@@ -187,6 +187,14 @@ class RoadAppRepositoryImpl extends RoadAppRepository {
     final action = remoteDataSource.completePotholeAssesment(param);
 
     final repoTryCatchHelper = RepoTryCatchHelper<BaseModel>();
+    return repoTryCatchHelper.tryAction(() => action);
+  }
+
+  @override
+  Future<Either<Failures, ReportModel>> adminReport(RequestParam param) {
+    final action = remoteDataSource.adminReport(param);
+
+    final repoTryCatchHelper = RepoTryCatchHelper<ReportModel>();
     return repoTryCatchHelper.tryAction(() => action);
   }
 }

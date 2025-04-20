@@ -9,6 +9,8 @@ import 'package:road_app/cores/__cores.dart';
 import 'package:road_app/cores/components/search_widget.dart';
 import 'package:road_app/features/road_app/data/responses/admin/places_response.dart';
 import 'package:road_app/features/road_app/presentation/pages/user/map_page.dart';
+// import 'package:road_app/features/road_app/presentation/pages/user/map_page.dart';
+import 'package:road_app/features/road_app/presentation/pages/user/mapbox_map.dart';
 
 class LocationSearchView extends StatelessWidget {
   static const routeName = '/location_search_view';
@@ -96,12 +98,20 @@ class _AddressListFormState extends State<_AddressListForm> {
                   _searchController.text = searchResult;
                   widget.onTap?.call(e);
                   // Navigator.pop(context);
-                  AppRouter.instance.navigateToAndReplacePage(MapScreen(
+                  // AppRouter.instance.navigateToAndReplacePage(MapScreen(
+                  //   destination: LatLng(
+                  //     item?.result?.geometry?.location?.lat ?? 0.0,
+                  //     item?.result?.geometry?.location?.lng ?? 0.0,
+                  //   ),
+                  //   destinationAddress: item?.result?.formattedAddress ?? '',
+                  // ));
+                  AppRouter.instance
+                      .navigateToAndReplacePage(MapboxPotholeScreen(
                     destination: LatLng(
                       item?.result?.geometry?.location?.lat ?? 0.0,
                       item?.result?.geometry?.location?.lng ?? 0.0,
                     ),
-                    destinationAddress: item?.result?.formattedAddress ?? '',
+                    // destinationAddress: item?.result?.formattedAddress ?? '',
                   ));
                 },
               ),

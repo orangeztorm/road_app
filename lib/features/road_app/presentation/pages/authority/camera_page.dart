@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:road_app/app/__app.dart';
 import 'package:road_app/cores/__cores.dart';
 import 'package:road_app/features/__features.dart';
@@ -31,6 +32,7 @@ class _CameraCapturePageState extends State<CameraCapturePage> {
     super.initState();
     _initializeCamera();
     _getUserLocation();
+    // if (Platform.isIOS) _captureImage();
   }
 
   /// 🔥 Initialize camera safely
@@ -121,13 +123,27 @@ class _CameraCapturePageState extends State<CameraCapturePage> {
 
   /// 🔥 Capture image safely
   Future<void> _captureImage() async {
-    if (!_isCameraInitialized || _cameraController == null) {
+    if ((!_isCameraInitialized || _cameraController == null) &&
+        !Platform.isIOS) {
       Toast.showError("Camera is not ready yet.");
       return;
     }
 
     try {
-      final XFile imageFile = await _cameraController!.takePicture();
+      late XFile? imageFile;
+
+      // if (Platform.isIOS) {
+      imageFile = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        preferredCameraDevice: CameraDevice.front,
+      );
+      if (imageFile == null) {
+        Toast.showError("No image selected.");
+        return;
+      }
+      // } else {
+      //   imageFile = await _cameraController!.takePicture();
+      // }
 
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -139,7 +155,7 @@ class _CameraCapturePageState extends State<CameraCapturePage> {
       );
 
       setState(() {
-        _capturedImagePath = imageFile.path;
+        _capturedImagePath = imageFile!.path;
         _currentPosition = position;
         _streetAddress = placemarks.isNotEmpty
             ? "${placemarks.first.street}, ${placemarks.first.locality}, ${placemarks.first.country}"

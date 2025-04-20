@@ -2,6 +2,7 @@ import 'package:road_app/cores/__cores.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:road_app/features/road_app/data/responses/admin/all_admin_model.dart';
 import 'package:road_app/features/road_app/data/responses/admin/all_teams_model.dart';
+import 'package:road_app/features/road_app/data/responses/admin/report_model.dart';
 import 'package:road_app/features/road_app/domain/_domain.dart';
 
 abstract class RoadAppRepository {
@@ -29,6 +30,7 @@ abstract class RoadAppRepository {
 
   //Teams
   Future<Either<Failures, AllTeamsModel>> allTeams(RequestParam param);
+  Future<Either<Failures, ReportModel>> adminReport(RequestParam param);
   Future<Either<Failures, AllAdminModel>> allAdmins(RequestParam param);
   Future<Either<Failures, BaseEntity>> createAdmin(RequestParam param);
   Future<Either<Failures, BaseEntity>> createTeams(RequestParam param);

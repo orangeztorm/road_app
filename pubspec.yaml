@@ -91,6 +91,8 @@ dependencies:
   flutter_launcher_icons: ^0.14.3
   location: ^7.0.0
   flutter_polyline_points: ^2.1.0
+  mapbox_maps_flutter: ^2.7.0
+  turf: ^0.0.10
 
 dev_dependencies:
   flutter_test:
@@ -117,6 +119,8 @@ flutter:
   assets:
     - .env
     - assets/
+    - assets/danger.png
+    - assets/assets/map_styles/navigation_style.json
 
 flutter_icons:
   android: true

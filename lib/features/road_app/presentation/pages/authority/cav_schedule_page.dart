@@ -8,6 +8,7 @@ import 'package:road_app/features/road_app/domain/param/complete_pothole_param.d
 import 'package:road_app/features/road_app/presentation/blocs/admin/complete_pothole_assesment_bloc/complete_pothole_assesment_bloc.dart';
 import 'package:road_app/features/road_app/presentation/pages/authority/authority_login_page.dart';
 import 'package:road_app/features/road_app/presentation/pages/authority/camera_page.dart';
+import 'package:road_app/features/road_app/presentation/pages/authority/report_page.dart';
 import 'package:road_app/features/road_app/presentation/pages/authority/road_surface_page.dart';
 import 'package:road_app/features/road_app/presentation/pages/authority/teams_page.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -486,6 +487,16 @@ class SettingsBottomSheet extends StatelessWidget {
           onTap: () {
             AppRouter.instance.goBack();
             AppRouter.instance.navigateTo(TeamsPage.routeName);
+            Toast.showInfo('Navigating to Teams');
+          },
+        ),
+        const VSpace(20),
+        _buildOption(
+          icon: Icons.group,
+          title: "Reports",
+          onTap: () {
+            AppRouter.instance.goBack();
+            AppRouter.instance.navigate(const ReportPage());
             Toast.showInfo('Navigating to Teams');
           },
         ),

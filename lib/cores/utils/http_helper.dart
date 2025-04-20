@@ -645,3 +645,8 @@ class HttpHelper {
     return 'Something went wrong, Please try again';
   }
 }
+
+T? castParam<T>(dynamic param) {
+  if (param is T) return param;
+  return null;
+}

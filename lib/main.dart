@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:road_app/app/__app.dart';
+import 'package:road_app/cores/__cores.dart';
 import 'package:road_app/firebase_options.dart';
 import 'package:road_app/http_overides.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -18,6 +20,7 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
   Locator.init();
   await clearCache();
+  MapboxOptions.setAccessToken(AppConstants.mapBoxToken); // Or from env
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
