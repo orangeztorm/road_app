@@ -16,6 +16,7 @@ class ReportPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScaffoldWidget(
+      useSingleScroll: false,
       appBar: AppBar(
         centerTitle: true,
         title: const TextWidget.bold(
@@ -23,52 +24,58 @@ class ReportPage extends StatelessWidget {
           fontSize: 22,
         ),
       ),
-      body: BlocBuilder<AdminReportBloc, AdminReportState>(
-        bloc: getAllOrdersBloc,
-        builder: (_, state) {
-          return Expanded(
-            child: ReusablePaginatedList(
-              dataList: state.orders,
-              loadingList: state.loadingList,
-              hasMore: state.hasMore,
-              isFailure: state.status.isFailure,
-              isLoadMore: state.status.isLoadMore,
-              isLoading: state.status.isLoading,
-              itemBuilder: (item) => InkWell(
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Column(
+        children: [
+          BlocBuilder<AdminReportBloc, AdminReportState>(
+            bloc: getAllOrdersBloc,
+            builder: (_, state) {
+              return Expanded(
+                child: ReusablePaginatedList(
+                  dataList: state.orders,
+                  loadingList: state.loadingList,
+                  hasMore: state.hasMore,
+                  isFailure: state.status.isFailure,
+                  isLoadMore: state.status.isLoadMore,
+                  isLoading: state.status.isLoading,
+                  itemBuilder: (item) => InkWell(
+                    child: Column(
                       children: [
-                        TextWidget.bold(
-                          item.type,
-                          fontSize: 16,
+                        Row(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            TextWidget.bold(
+                              item.type,
+                              fontSize: 16,
+                            ),
+                            TextWidget.bold(item.total.toString(),
+                                fontSize: 16),
+                          ],
                         ),
-                        TextWidget.bold(item.total.toString(), fontSize: 16),
                       ],
                     ),
-                  ],
+                  ),
+                  seperatorWidget: const VSpace(),
+                  onInitialLoad: () {
+                    getAllOrdersCubit.reset();
+                    getAllOrdersBloc.add(GetAllReport(getAllOrdersCubit.state));
+                  },
+                  onRetry: () {
+                    getAllOrdersBloc.add(GetAllReport(getAllOrdersCubit.state));
+                  },
+                  onLoadMore: () {
+                    if (getAllOrdersBloc.state.hasMore == true) {
+                      final nextPage = getAllOrdersCubit.state.page.value + 1;
+                      getAllOrdersCubit.onPageChanged(nextPage);
+                      getAllOrdersBloc
+                          .add(LoadMoreReport(getAllOrdersCubit.state));
+                    }
+                  },
                 ),
-              ),
-              seperatorWidget: const VSpace(),
-              onInitialLoad: () {
-                getAllOrdersCubit.reset();
-                getAllOrdersBloc.add(GetAllReport(getAllOrdersCubit.state));
-              },
-              onRetry: () {
-                getAllOrdersBloc.add(GetAllReport(getAllOrdersCubit.state));
-              },
-              onLoadMore: () {
-                if (getAllOrdersBloc.state.hasMore == true) {
-                  final nextPage = getAllOrdersCubit.state.page.value + 1;
-                  getAllOrdersCubit.onPageChanged(nextPage);
-                  getAllOrdersBloc.add(LoadMoreReport(getAllOrdersCubit.state));
-                }
-              },
-            ),
-          );
-        },
+              );
+            },
+          )
+        ],
       ),
     );
   }

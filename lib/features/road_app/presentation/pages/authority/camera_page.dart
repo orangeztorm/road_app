@@ -133,16 +133,16 @@ class _CameraCapturePageState extends State<CameraCapturePage> {
       late XFile? imageFile;
 
       // if (Platform.isIOS) {
-      imageFile = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
-        preferredCameraDevice: CameraDevice.front,
-      );
-      if (imageFile == null) {
-        Toast.showError("No image selected.");
-        return;
-      }
+      // imageFile = await ImagePicker().pickImage(
+      //   source: ImageSource.gallery,
+      //   preferredCameraDevice: CameraDevice.front,
+      // );
+      // if (imageFile == null) {
+      //   Toast.showError("No image selected.");
+      //   return;
+      // }
       // } else {
-      //   imageFile = await _cameraController!.takePicture();
+      imageFile = await _cameraController!.takePicture();
       // }
 
       Position position = await Geolocator.getCurrentPosition(
